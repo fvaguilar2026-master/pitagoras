@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Interactivo del Teorema de Pitágoras</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        .grid-bg {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden">
+
+    <!-- Header / Navbar -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3 sm:px-8">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-indigo-600/20 border border-indigo-500/30 rounded-xl text-indigo-400">
+                    <i data-lucide="triangle" class="w-6 h-6 stroke-[2.5]"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-sky-400 to-emerald-400">
+                        Teorema de Pitágoras
+                    </h1>
+                    <p class="text-xs text-slate-400">Explorador geométrico e interactivo</p>
+                </div>
+            </div>
+
+            <!-- Botones de Ternas Pitagóricas Rápidas -->
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider mr-1 hidden lg:inline">Ternas clásicas:</span>
+                <button onclick="setPythagoreanTriple(3, 4)" class="triple-btn px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-indigo-900/50 hover:text-indigo-300 border border-slate-700 hover:border-indigo-500/50 rounded-lg transition">
+                    (3, 4, 5)
+                </button>
+                <button onclick="setPythagoreanTriple(5, 12)" class="triple-btn px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-indigo-900/50 hover:text-indigo-300 border border-slate-700 hover:border-indigo-500/50 rounded-lg transition">
+                    (5, 12, 13)
+                </button>
+                <button onclick="setPythagoreanTriple(6, 8)" class="triple-btn px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-indigo-900/50 hover:text-indigo-300 border border-slate-700 hover:border-indigo-500/50 rounded-lg transition">
+                    (6, 8, 10)
+                </button>
+                <button onclick="setPythagoreanTriple(8, 15)" class="triple-btn px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-indigo-900/50 hover:text-indigo-300 border border-slate-700 hover:border-indigo-500/50 rounded-lg transition">
+                    (8, 15, 17)
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Columna Izquierda: Visualización del Canvas (7 cols) -->
+        <section class="lg:col-span-7 flex flex-col gap-4">
+            
+            <!-- Canvas Container Card -->
+            <div class="relative bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden grid-bg flex-1 flex flex-col min-h-[420px] sm:min-h-[500px]">
+                
+                <!-- Barra Superior de Controles del Canvas -->
+                <div class="p-3 sm:p-4 border-b border-slate-800/80 bg-slate-900/90 flex flex-wrap justify-between items-center gap-3 z-10">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                            <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+                            Simulación en Tiempo Real
+                        </span>
+                    </div>
+
+                    <!-- Modos de vista y opciones de render -->
+                    <div class="flex items-center gap-2">
+                        <button id="toggleGridBtn" onclick="toggleGrid()" class="px-2.5 py-1.5 rounded-lg text-xs bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 transition flex items-center gap-1.5">
+                            <i data-lucide="grid" class="w-3.5 h-3.5"></i> Cuadrícula
+                        </button>
+                        <button id="toggleValuesBtn" onclick="toggleValues()" class="px-2.5 py-1.5 rounded-lg text-xs bg-indigo-900/40 text-indigo-300 border border-indigo-700/50 hover:bg-indigo-800/50 transition flex items-center gap-1.5">
+                            <i data-lucide="eye" class="w-3.5 h-3.5"></i> Valores
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Canvas Render Stage -->
+                <div class="relative flex-1 w-full h-full min-h-[360px] flex items-center justify-center cursor-grab active:cursor-grabbing select-none overflow-hidden" id="canvasContainer">
+                    <canvas id="pythagorasCanvas" class="absolute inset-0 w-full h-full"></canvas>
+
+                    <!-- Overlay de Ayuda de Arrastre -->
+                    <div class="absolute bottom-3 left-3 pointer-events-none bg-slate-950/70 border border-slate-800 backdrop-blur px-3 py-1.5 rounded-lg text-xs text-slate-400 flex items-center gap-2">
+                        <i data-lucide="move" class="w-4 h-4 text-slate-400"></i>
+                        <span>Arrastra el vértice superior para modificar</span>
+                    </div>
+                </div>
+
+                <!-- Barra Inferior de Animación de Demostración -->
+                <div class="p-4 border-t border-slate-800/80 bg-slate-900/95 flex flex-wrap justify-between items-center gap-4 z-10">
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <button id="animBtn" onclick="toggleAnimation()" class="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-semibold rounded-xl shadow-lg shadow-emerald-950/40 transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                            <i id="animIcon" data-lucide="play" class="w-4 h-4 stroke-[3]"></i>
+                            <span id="animText">Animar Demostración de Área</span>
+                        </button>
+                    </div>
+                    
+                    <div class="text-xs text-slate-400 flex items-center gap-4">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded bg-blue-500 inline-block"></span> Cateto a²
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded bg-emerald-500 inline-block"></span> Cateto b²
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded bg-purple-500 inline-block"></span> Hipotenusa c²
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Columna Derecha: Controles y Panel Matemático Paso a Paso (5 cols) -->
+        <section class="lg:col-span-5 flex flex-col gap-6">
+
+            <!-- Panel de Deslizadores / Ajustes -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+                <h2 class="text-base font-semibold text-slate-200 flex items-center gap-2">
+                    <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i>
+                    Ajuste de Catetos
+                </h2>
+
+                <!-- Slider Cateto A -->
+                <div class="space-y-2 bg-slate-950/50 border border-slate-800/80 p-3.5 rounded-xl">
+                    <div class="flex justify-between items-center">
+                        <label for="rangeA" class="text-sm font-medium text-blue-400 flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                            Cateto <i>a</i> (Vertical)
+                        </label>
+                        <span id="valA_display" class="code-font font-bold text-blue-400 bg-blue-950/60 border border-blue-800/50 px-2.5 py-0.5 rounded text-sm">3.0</span>
+                    </div>
+                    <input type="range" id="rangeA" min="1" max="15" step="0.1" value="3" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                </div>
+
+                <!-- Slider Cateto B -->
+                <div class="space-y-2 bg-slate-950/50 border border-slate-800/80 p-3.5 rounded-xl">
+                    <div class="flex justify-between items-center">
+                        <label for="rangeB" class="text-sm font-medium text-emerald-400 flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                            Cateto <i>b</i> (Horizontal)
+                        </label>
+                        <span id="valB_display" class="code-font font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2.5 py-0.5 rounded text-sm">4.0</span>
+                    </div>
+                    <input type="range" id="rangeB" min="1" max="15" step="0.1" value="4" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                </div>
+            </div>
+
+            <!-- Panel de Demostración Matemática Paso a Paso -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl flex-1 flex flex-col gap-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-base font-semibold text-slate-200 flex items-center gap-2">
+                        <i data-lucide="calculator" class="w-4 h-4 text-purple-400"></i>
+                        Cálculo Paso a Paso
+                    </h2>
+                    <span class="text-xs text-slate-500 font-mono">Demostración en vivo</span>
+                </div>
+
+                <!-- Pasos de las Ecuaciones -->
+                <div class="space-y-3 code-font text-sm">
+                    <!-- Paso 1: Elevación al cuadrado -->
+                    <div class="p-3 bg-slate-950/60 border border-slate-800 rounded-xl space-y-1">
+                        <div class="text-xs text-slate-400 font-sans mb-1">Paso 1: Calcular las áreas de los catetos</div>
+                        <div class="flex justify-between items-center text-blue-300">
+                            <span>a² = (<span id="step_a">3.00</span>)²</span>
+                            <span class="font-bold text-blue-400" id="step_a2">9.00</span>
+                        </div>
+                        <div class="flex justify-between items-center text-emerald-300">
+                            <span>b² = (<span id="step_b">4.00</span>)²</span>
+                            <span class="font-bold text-emerald-400" id="step_b2">16.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Paso 2: Suma de áreas -->
+                    <div class="p-3 bg-slate-950/60 border border-slate-800 rounded-xl space-y-1">
+                        <div class="text-xs text-slate-400 font-sans mb-1">Paso 2: Sumar las dos áreas catéticas</div>
+                        <div class="flex justify-between items-center text-slate-200">
+                            <span>a² + b² = <span class="text-blue-400" id="step_sum_a2">9.00</span> + <span class="text-emerald-400" id="step_sum_b2">16.00</span></span>
+                            <span class="font-bold text-purple-400" id="step_c2_sum">25.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Paso 3: Raíz cuadrada (Hipotenusa) -->
+                    <div class="p-3 bg-slate-950/60 border border-slate-800 rounded-xl space-y-1">
+                        <div class="text-xs text-slate-400 font-sans mb-1">Paso 3: Extraer la raíz cuadrada para hallar c</div>
+                        <div class="flex justify-between items-center text-purple-300">
+                            <span>c = √(a² + b²) = √(<span id="step_sqrt_inside">25.00</span>)</span>
+                            <span class="font-bold text-purple-400 text-base" id="step_c_val">5.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumen de la Ecuación Principal / Resaltador de Teorema -->
+                <div class="mt-auto p-4 bg-gradient-to-r from-purple-950/40 via-indigo-950/40 to-slate-950/40 border border-purple-500/30 rounded-xl flex flex-col items-center justify-center text-center">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-purple-400 mb-1">Ecuación Fundamental</span>
+                    <div class="text-xl sm:text-2xl font-bold text-slate-100 code-font">
+                        <span class="text-blue-400" id="eq_a2">9.00</span> + 
+                        <span class="text-emerald-400" id="eq_b2">16.00</span> = 
+                        <span class="text-purple-400" id="eq_c2">25.00</span>
+                    </div>
+                    <div class="text-xs text-slate-400 mt-1">
+                        Área <span class="text-blue-400 font-semibold">a²</span> + Área <span class="text-emerald-400 font-semibold">b²</span> = Área <span class="text-purple-400 font-semibold">c²</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Explicación Teórica Didáctica Adicional -->
+    <footer class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
+        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="space-y-2">
+                <div class="flex items-center gap-2 text-indigo-400 font-semibold text-sm">
+                    <i data-lucide="book-open" class="w-4 h-4"></i>
+                    ¿Qué establece el teorema?
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    En todo triángulo rectángulo, el área del cuadrado construido sobre la hipotenusa ($c$) es exactamente igual a la suma de las áreas de los cuadrados construidos sobre los catetos ($a$ y $b$).
+                </p>
+            </div>
+            <div class="space-y-2">
+                <div class="flex items-center gap-2 text-indigo-400 font-semibold text-sm">
+                    <i data-lucide="layers" class="w-4 h-4"></i>
+                    Interpretación Geométrica
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Más allá de una fórmula numérica, se trata de una propiedad espacial: si llenáramos los cuadrados $a$ y $b$ con líquido o arena, tendrían la cantidad justa para llenar el cuadrado $c$.
+                </p>
+            </div>
+            <div class="space-y-2">
+                <div class="flex items-center gap-2 text-indigo-400 font-semibold text-sm">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    Ternas Pitagóricas
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Son conjuntos de tres números enteros $(a, b, c)$ que satisfacen perfectamente la ecuación $a^2 + b^2 = c^2$, como $(3, 4, 5)$ o $(5, 12, 13)$.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Script Principal de Lógica y Gráficos -->
+    <script>
+        // Inicializar Lucide Icons
+        lucide.createIcons();
+
+        // Variables de Estado de la Aplicación
+        let cathetusA = 3.0; // Vertical
+        let cathetusB = 4.0; // Horizontal
+        
+        let showGrid = true;
+        let showValues = true;
+
+        // Variables de Animación de Demostración
+        let isAnimating = false;
+        let animProgress = 0; // 0 a 1
+        let animRequestId = null;
+
+        // Referencias a Elementos DOM
+        const canvas = document.getElementById('pythagorasCanvas');
+        const ctx = canvas.getContext('2d');
+        const canvasContainer = document.getElementById('canvasContainer');
+
+        const rangeA = document.getElementById('rangeA');
+        const rangeB = document.getElementById('rangeB');
+        const valADisplay = document.getElementById('valA_display');
+        const valBDisplay = document.getElementById('valB_display');
+
+        // Referencias a los pasos del cálculo
+        const stepA = document.getElementById('step_a');
+        const stepA2 = document.getElementById('step_a2');
+        const stepB = document.getElementById('step_b');
+        const stepB2 = document.getElementById('step_b2');
+        const stepSumA2 = document.getElementById('step_sum_a2');
+        const stepSumB2 = document.getElementById('step_sum_b2');
+        const stepC2Sum = document.getElementById('step_c2_sum');
+        const stepSqrtInside = document.getElementById('step_sqrt_inside');
+        const stepCVal = document.getElementById('step_c_val');
+        
+        const eqA2 = document.getElementById('eq_a2');
+        const eqB2 = document.getElementById('eq_b2');
+        const eqC2 = document.getElementById('eq_c2');
+
+        // Arrastre con Mouse/Touch en el Canvas
+        let isDragging = false;
+
+        // Redimensionar Canvas adaptativamente
+        function resizeCanvas() {
+            const rect = canvasContainer.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            draw();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // Controladores de los Sliders
+        rangeA.addEventListener('input', (e) => {
+            cathetusA = parseFloat(e.target.value);
+            updateCalculations();
+            draw();
+        });
+
+        rangeB.addEventListener('input', (e) => {
+            cathetusB = parseFloat(e.target.value);
+            updateCalculations();
+            draw();
+        });
+
+        // Alternar Cuadrícula
+        function toggleGrid() {
+            showGrid = !showGrid;
+            const btn = document.getElementById('toggleGridBtn');
+            if (showGrid) {
+                btn.classList.add('bg-indigo-900/40', 'text-indigo-300', 'border-indigo-700/50');
+                btn.classList.remove('bg-slate-800', 'text-slate-300', 'border-slate-700');
+            } else {
+                btn.classList.remove('bg-indigo-900/40', 'text-indigo-300', 'border-indigo-700/50');
+                btn.classList.add('bg-slate-800', 'text-slate-300', 'border-slate-700');
+            }
+            draw();
+        }
+
+        // Alternar Valores en el Dibujo
+        function toggleValues() {
+            showValues = !showValues;
+            const btn = document.getElementById('toggleValuesBtn');
+            if (showValues) {
+                btn.classList.add('bg-indigo-900/40', 'text-indigo-300', 'border-indigo-700/50');
+                btn.classList.remove('bg-slate-800', 'text-slate-300', 'border-slate-700');
+            } else {
+                btn.classList.remove('bg-indigo-900/40', 'text-indigo-300', 'border-indigo-700/50');
+                btn.classList.add('bg-slate-800', 'text-slate-300', 'border-slate-700');
+            }
+            draw();
+        }
+
+        // Seleccionar Terna Pitagórica
+        function setPythagoreanTriple(a, b) {
+            cathetusA = a;
+            cathetusB = b;
+            rangeA.value = a;
+            rangeB.value = b;
+            updateCalculations();
+            draw();
+        }
+
+        // Actualizar el Panel de Cálculos
+        function updateCalculations() {
+            const a = cathetusA;
+            const b = cathetusB;
+            const a2 = a * a;
+            const b2 = b * b;
+            const c2 = a2 + b2;
+            const c = Math.sqrt(c2);
+
+            valADisplay.textContent = a.toFixed(1);
+            valBDisplay.textContent = b.toFixed(1);
+
+            stepA.textContent = a.toFixed(2);
+            stepA2.textContent = a2.toFixed(2);
+            stepB.textContent = b.toFixed(2);
+            stepB2.textContent = b2.toFixed(2);
+
+            stepSumA2.textContent = a2.toFixed(2);
+            stepSumB2.textContent = b2.toFixed(2);
+            stepC2Sum.textContent = c2.toFixed(2);
+
+            stepSqrtInside.textContent = c2.toFixed(2);
+            stepCVal.textContent = c.toFixed(2);
+
+            eqA2.textContent = a2.toFixed(2);
+            eqB2.textContent = b2.toFixed(2);
+            eqC2.textContent = c2.toFixed(2);
+        }
+
+        // Animación de Demostración (Transferencia de Área)
+        function toggleAnimation() {
+            if (isAnimating) {
+                stopAnimation();
+            } else {
+                startAnimation();
+            }
+        }
+
+        function startAnimation() {
+            isAnimating = true;
+            animProgress = 0;
+            document.getElementById('animText').textContent = "Pausar Animación";
+            document.getElementById('animIcon').setAttribute('data-lucide', 'pause');
+            lucide.createIcons();
+            animateLoop();
+        }
+
+        function stopAnimation() {
+            isAnimating = false;
+            if (animRequestId) cancelAnimationFrame(animRequestId);
+            animProgress = 0;
+            document.getElementById('animText').textContent = "Animar Demostración de Área";
+            document.getElementById('animIcon').setAttribute('data-lucide', 'play');
+            lucide.createIcons();
+            draw();
+        }
+
+        function animateLoop() {
+            if (!isAnimating) return;
+
+            animProgress += 0.008;
+            if (animProgress > 1) {
+                animProgress = 1;
+                setTimeout(() => {
+                    if (isAnimating) animProgress = 0; // Bucle continuo
+                }, 1000);
+            }
+
+            draw();
+            animRequestId = requestAnimationFrame(animateLoop);
+        }
+
+        // -------------------------------------------------------------
+        // DIBUJO GEOMÉTRICO PRINCIPAL EN CANVAS
+        // -------------------------------------------------------------
+        function draw() {
+            if (!ctx) return;
+
+            const width = canvas.width;
+            const height = canvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Determinar escala dinámica para que todo quepa cómodamente
+            // El rango máximo de cateto es 15, así que un triángulo 15x15 con cuadrados proyectados ocupa cierto espacio.
+            const maxDimension = Math.max(cathetusA, cathetusB, 5);
+            // Factor de escala (píxeles por unidad de longitud)
+            const scale = Math.min(width, height) / (maxDimension * 2.8);
+
+            // Origen del vértice de ángulo recto (C) para centrar la figura
+            // Ubicamos C estratégicamente
+            const cX = width * 0.42;
+            const cY = height * 0.58;
+
+            // Coordenadas de los vértices del triángulo rectángulo ABC:
+            // C = Ángulo recto (cX, cY)
+            // A = Vértice superior (cX, cY - cathetusA * scale)
+            // B = Vértice derecho (cX + cathetusB * scale, cY)
+
+            const ax = cX;
+            const ay = cY - cathetusA * scale;
+
+            const bx = cX + cathetusB * scale;
+            const by = cY;
+
+            // Dibuja Cuadrícula opcional
+            if (showGrid) {
+                drawBackgroundGrid(width, height, scale, cX, cY);
+            }
+
+            // 1. Cuadrado sobre el cateto A (lado vertical AC, proyectado a la izquierda)
+            // Lado = a. Vector AC = (0, -a*scale). Perpendicular a la izquierda = (-a*scale, 0)
+            const lenA = cathetusA * scale;
+            const sqA = [
+                { x: cX, y: cY },
+                { x: ax, y: ay },
+                { x: ax - lenA, y: ay },
+                { x: cX - lenA, y: cY }
+            ];
+            drawPolygon(sqA, 'rgba(59, 130, 246, 0.25)', '#3b82f6', 2);
+            drawGridInsideSquare(sqA, Math.round(cathetusA), 'rgba(59, 130, 246, 0.2)');
+
+            // 2. Cuadrado sobre el cateto B (lado horizontal CB, proyectado hacia abajo)
+            const lenB = cathetusB * scale;
+            const sqB = [
+                { x: cX, y: cY },
+                { x: bx, y: by },
+                { x: bx, y: by + lenB },
+                { x: cX, y: cY + lenB }
+            ];
+            drawPolygon(sqB, 'rgba(16, 185, 129, 0.25)', '#10b981', 2);
+            drawGridInsideSquare(sqB, Math.round(cathetusB), 'rgba(16, 185, 129, 0.2)');
+
+            // 3. Cuadrado sobre la Hipotenusa C (lado AB)
+            // Vector AB = (bx - ax, by - ay) = (b*scale, a*scale)
+            // Vector Perpendicular hacia afuera (derecha-arriba): (by - ay, -(bx - ax)) = (a*scale, -b*scale)
+            const vx = bx - ax;
+            const vy = by - ay;
+            const perpX = -vy; // girado 90 grados hacia afuera
+            const perpY = vx;
+
+            const sqC = [
+                { x: ax, y: ay },
+                { x: bx, y: by },
+                { x: bx + perpX, y: by + perpY },
+                { x: ax + perpX, y: ay + perpY }
+            ];
+            drawPolygon(sqC, 'rgba(168, 85, 247, 0.25)', '#a855f7', 2);
+
+            // ANIMACIÓN DE LLENADO / DEMOSTRACIÓN DE ÁREA
+            if (animProgress > 0) {
+                renderAreaTransferAnimation(sqA, sqB, sqC, Math.round(cathetusA), Math.round(cathetusB), animProgress);
+            }
+
+            // 4. Triángulo Rectángulo Principal (ABC)
+            ctx.beginPath();
+            ctx.moveTo(ax, ay);
+            ctx.lineTo(bx, by);
+            ctx.lineTo(cX, cY);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(248, 250, 252, 0.1)';
+            ctx.fill();
+            ctx.strokeStyle = '#f8fafc';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Marca de ángulo recto en C
+            const squareSize = Math.min(16, scale * 0.8);
+            ctx.beginPath();
+            ctx.rect(cX, cY - squareSize, squareSize, squareSize);
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Vértices destacados / Interacción
+            drawVertex(ax, ay, 'A', '#3b82f6');
+            drawVertex(bx, by, 'B', '#10b981');
+            drawVertex(cX, cY, 'C (90°)', '#94a3b8');
+
+            // Etiquetas con dimensiones y valores
+            if (showValues) {
+                // Etiqueta Cateto a
+                drawLabel(`a = ${cathetusA.toFixed(1)}`, (cX + ax)/2 - 12, (cY + ay)/2, '#60a5fa');
+                // Etiqueta Área a²
+                drawLabel(`a² = ${(cathetusA * cathetusA).toFixed(1)}`, cX - lenA / 2, cY - lenA / 2, '#93c5fd', true);
+
+                // Etiqueta Cateto b
+                drawLabel(`b = ${cathetusB.toFixed(1)}`, (cX + bx)/2, (cY + by)/2 + 18, '#34d399');
+                // Etiqueta Área b²
+                drawLabel(`b² = ${(cathetusB * cathetusB).toFixed(1)}`, cX + lenB / 2, cY + lenB / 2, '#6ee7b7', true);
+
+                // Etiqueta Hipotenusa c
+                const hypLen = Math.sqrt(cathetusA * cathetusA + cathetusB * cathetusB);
+                drawLabel(`c = ${hypLen.toFixed(1)}`, (ax + bx)/2 + 15, (ay + by)/2 - 15, '#c084fc');
+                // Etiqueta Área c²
+                const cCenterX = (sqC[0].x + sqC[1].x + sqC[2].x + sqC[3].x) / 4;
+                const cCenterY = (sqC[0].y + sqC[1].y + sqC[2].y + sqC[3].y) / 4;
+                drawLabel(`c² = ${(hypLen * hypLen).toFixed(1)}`, cCenterX, cCenterY, '#e9d5ff', true);
+            }
+        }
+
+        // Auxiliar: Dibujar Polígonos
+        function drawPolygon(points, fillColor, strokeColor, lineWidth = 2) {
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let i = 1; i < points.length; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = fillColor;
+            ctx.fill();
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = lineWidth;
+            ctx.stroke();
+        }
+
+        // Auxiliar: Dibujar Cuadrícula dentro de los cuadrados
+        function drawGridInsideSquare(sq, divisions, strokeStyle) {
+            if (divisions <= 1 || divisions > 20) return;
+            ctx.strokeStyle = strokeStyle;
+            ctx.lineWidth = 1;
+
+            for (let i = 1; i < divisions; i++) {
+                const t = i / divisions;
+
+                // Líneas horizontales/verticales internas mediante interpolación
+                const p1 = interpolatePoint(sq[0], sq[1], t);
+                const p2 = interpolatePoint(sq[3], sq[2], t);
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+
+                const p3 = interpolatePoint(sq[0], sq[3], t);
+                const p4 = interpolatePoint(sq[1], sq[2], t);
+                ctx.beginPath();
+                ctx.moveTo(p3.x, p3.y);
+                ctx.lineTo(p4.x, p4.y);
+                ctx.stroke();
+            }
+        }
+
+        function interpolatePoint(p1, p2, t) {
+            return {
+                x: p1.x + (p2.x - p1.x) * t,
+                y: p1.y + (p2.y - p1.y) * t
+            };
+        }
+
+        // Auxiliar: Dibujar Fondo de Guía Grid
+        function drawBackgroundGrid(w, h, scale, originX, originY) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.lineWidth = 1;
+
+            const step = scale; // 1 unidad
+            if (step < 10) return;
+
+            for (let x = originX % step; x < w; x += step) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, h);
+                ctx.stroke();
+            }
+            for (let y = originY % step; y < h; y += step) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(w, y);
+                ctx.stroke();
+            }
+        }
+
+        // Auxiliar: Dibujar Vértice
+        function drawVertex(x, y, label, color) {
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.font = 'bold 12px Inter, sans-serif';
+            ctx.fillStyle = color;
+            ctx.fillText(label, x - 12, y - 12);
+        }
+
+        // Auxiliar: Dibujar Etiquetas de Texto
+        function drawLabel(text, x, y, color, isBadge = false) {
+            ctx.save();
+            ctx.font = isBadge ? 'bold 13px Fira Code, monospace' : '600 12px Inter, sans-serif';
+            const metrics = ctx.measureText(text);
+            const padding = 5;
+
+            if (isBadge) {
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.roundRect(x - metrics.width / 2 - padding, y - 10 - padding, metrics.width + padding * 2, 20 + padding, 6);
+                ctx.fill();
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = color;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, x, y);
+            ctx.restore();
+        }
+
+        // Renderizar la animación de transferencia de partículas/área
+        function renderAreaTransferAnimation(sqA, sqB, sqC, gridA, gridB, progress) {
+            // Genera flujo de partículas de área desde A y B hacia C
+            const centerA = { x: (sqA[0].x + sqA[2].x) / 2, y: (sqA[0].y + sqA[2].y) / 2 };
+            const centerB = { x: (sqB[0].x + sqB[2].x) / 2, y: (sqB[0].y + sqB[2].y) / 2 };
+            const centerC = { x: (sqC[0].x + sqC[2].x) / 2, y: (sqC[0].y + sqC[2].y) / 2 };
+
+            // Dibujar pulso de llenado en el cuadrado C
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(sqC[0].x, sqC[0].y);
+            ctx.lineTo(sqC[1].x, sqC[1].y);
+            ctx.lineTo(sqC[2].x, sqC[2].y);
+            ctx.lineTo(sqC[3].x, sqC[3].y);
+            ctx.closePath();
+            ctx.fillStyle = `rgba(168, 85, 247, ${0.1 + progress * 0.4})`;
+            ctx.fill();
+            ctx.restore();
+
+            // Partículas flotantes de A -> C
+            const numParticles = 24;
+            for (let i = 0; i < numParticles; i++) {
+                const seed = i / numParticles;
+                const pT = (progress + seed) % 1; // animación en bucle
+
+                // De A a C
+                const pxA = centerA.x + (centerC.x - centerA.x) * pT;
+                const pyA = centerA.y + (centerC.y - centerA.y) * pT;
+
+                ctx.beginPath();
+                ctx.arc(pxA, pyA, 3.5, 0, Math.PI * 2);
+                ctx.fillStyle = '#60a5fa';
+                ctx.shadowColor = '#3b82f6';
+                ctx.shadowBlur = 8;
+                ctx.fill();
+
+                // De B a C
+                const pxB = centerB.x + (centerC.x - centerB.x) * pT;
+                const pyB = centerB.y + (centerC.y - centerB.y) * pT;
+
+                ctx.beginPath();
+                ctx.arc(pxB, pyB, 3.5, 0, Math.PI * 2);
+                ctx.fillStyle = '#34d399';
+                ctx.shadowColor = '#10b981';
+                ctx.shadowBlur = 8;
+                ctx.fill();
+            }
+            ctx.shadowBlur = 0; // reset
+        }
+
+        // -------------------------------------------------------------
+        // INTERACCIÓN TÁCTIL Y MOUSE (Arrastrar Vértice A para ajustar)
+        // -------------------------------------------------------------
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function handleStart(e) {
+            const pos = getMousePos(e);
+            // Comprobar si está cerca del vértice superior A
+            const maxDim = Math.max(cathetusA, cathetusB, 5);
+            const scale = Math.min(canvas.width, canvas.height) / (maxDim * 2.8);
+            const cX = canvas.width * 0.42;
+            const cY = canvas.height * 0.58;
+            const ax = cX;
+            const ay = cY - cathetusA * scale;
+
+            const dist = Math.hypot(pos.x - ax, pos.y - ay);
+            if (dist < 30) {
+                isDragging = true;
+            }
+        }
+
+        function handleMove(e) {
+            if (!isDragging) return;
+            const pos = getMousePos(e);
+            const cY = canvas.height * 0.58;
+            const maxDim = Math.max(cathetusA, cathetusB, 5);
+            const scale = Math.min(canvas.width, canvas.height) / (maxDim * 2.8);
+
+            // Calcular nuevo valor de A basado en la distancia vertical
+            const deltaY = (cY - pos.y) / scale;
+            const newA = Math.max(1, Math.min(15, deltaY));
+
+            cathetusA = Math.round(newA * 10) / 10;
+            rangeA.value = cathetusA;
+            updateCalculations();
+            draw();
+        }
+
+        function handleEnd() {
+            isDragging = false;
+        }
+
+        canvas.addEventListener('mousedown', handleStart);
+        canvas.addEventListener('mousemove', handleMove);
+        window.addEventListener('mouseup', handleEnd);
+
+        canvas.addEventListener('touchstart', handleStart, { passive: true });
+        canvas.addEventListener('touchmove', handleMove, { passive: true });
+        window.addEventListener('touchend', handleEnd);
+
+        // Inicialización
+        window.onload = function() {
+            resizeCanvas();
+            updateCalculations();
+        };
+    </script>
+</body>
+</html>
